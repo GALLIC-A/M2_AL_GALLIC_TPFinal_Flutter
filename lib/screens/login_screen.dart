@@ -29,8 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>(); // Clé pour le formulaire
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 obscureText: true, // Masquer le texte
                 validator: (value) {
-// Validation du mot de passe
+                  // Validation du mot de passe
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer votre mot de passe';
                   }
@@ -90,14 +91,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 24.0),
-// Bouton de Connexion
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Se connecter'),
-              ),
-              ElevatedButton(
-                  onPressed: _resetForm,
-                  child: const Text('Effacer le formulaire')
+              // Bouton de Connexion OU indicateur de chargement
+              _isLoading
+                ? const CircularProgressIndicator()
+                : Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text('Se connecter'),
+                  ),
+                  ElevatedButton(
+                      onPressed: _resetForm,
+                      child: const Text('Effacer le formulaire')
+                  )
+                ],
               )
             ],
           ),
@@ -108,10 +115,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       String email = _emailController.text;
       String password = _passwordController.text;
 
       var user = await _authService.login(email, password);
+
+      setState(() {
+        _isLoading = false;
+      });
 
       if (user != null) {
 // Connexion réussie avec informations supplémentaires
