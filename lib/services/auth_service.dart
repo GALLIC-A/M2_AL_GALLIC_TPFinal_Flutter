@@ -7,47 +7,74 @@ class AuthService {
   final String apiUrl = LoginAppConfig().apiUrl; // Assurez-vous que c'est le bon port
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      String hashedPassword = hashPassword(password);
+    int fails = 0;
+    final int maxRetries = 3;
 
-      final Map<String, String> body = {
-        'email': email,
-        'password': hashedPassword,
-      };
-
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(body),
-      );
-
-      final Map<String, dynamic> data = json.decode(response.body);
-
-      if (response.statusCode == 200 && data['status'] == 200) {
-        return {
-          'success': true,
-          'firstName': data['firstName'],
-          'lastName': data['lastName'],
-          'role': data['role'],
-          'email': data['email'],
+    while (fails < maxRetries) {
+      try {
+        String hashedPassword = hashPassword(password);
+        final Map<String, String> body = {
+          'email': email,
+          'password': hashedPassword,
         };
-      } else {
-        return {
-          'success': false,
-          'status': data['status'],
-          'message': data['message'] ?? 'Erreur inconnue',
-        };
+
+        final response = await http
+            .post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(body),
+        )
+            .timeout(
+          Duration(seconds: 10),
+          onTimeout: () {
+            return http.Response(
+              json.encode({
+                'status': 0,
+                'message': 'La requête a expiré. Veuillez réessayer.',
+              }),
+              408,
+            );
+          },
+        );
+
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (response.statusCode == 200 && data['status'] == 200) {
+          return {
+            'success': true,
+            'firstName': data['firstName'],
+            'lastName': data['lastName'],
+            'role': data['role'],
+            'email': data['email'],
+          };
+        } else {
+          return {
+            'success': false,
+            'status': data['status'],
+            'message': data['message'] ?? 'Erreur inconnue',
+          };
+        }
+      } catch (e) {
+        fails++;
+        if (fails >= maxRetries) {
+          return {
+            'success': false,
+            'status': 0,
+            'message': 'Échec après $maxRetries tentatives. Erreur: $e',
+          };
+        } else {
+          await Future.delayed(Duration(seconds: 2));
+        }
       }
-    } catch (e) {
-      // On tombe ici en cas de problème non-lié à l'API directement (comme un problème de connexion)
-      return {
-        'success': false,
-        'status': 0,
-        'message': 'Erreur lors de la requête: $e',
-      };
     }
+
+    return {
+      'success': false,
+      'status': 0,
+      'message': 'Échec de la requête après plusieurs tentatives',
+    };
   }
 
   static String hashPassword(String password) {
