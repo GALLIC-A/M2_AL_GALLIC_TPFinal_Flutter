@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class AuthService {
   final String apiUrl = 'http://localhost'; // Assurez-vous que c'est le bon port
 
-  Future<Map<String, dynamic>?> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       String hashedPassword = hashPassword(password);
 
@@ -22,31 +22,27 @@ class AuthService {
         body: json.encode(body),
       );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (data['status'] == 200) {
-          return {
-            'firstName': data['firstName'],
-            'lastName': data['lastName'],
-            'role': data['role'],
-            'email': data['email'],
-          };
-        } else {
-          return {
-            'status': data['status'],
-            'message': data['message'],
-          };
-        }
-      } else {
-        final Map<String, dynamic> data = json.decode(response.body);
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == 200) {
         return {
+          'success': true,
+          'firstName': data['firstName'],
+          'lastName': data['lastName'],
+          'role': data['role'],
+          'email': data['email'],
+        };
+      } else {
+        return {
+          'success': false,
           'status': data['status'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Erreur inconnue',
         };
       }
     } catch (e) {
       // On tombe ici en cas de problème non-lié à l'API directement (comme un problème de connexion)
       return {
+        'success': false,
         'status': 0,
         'message': 'Erreur lors de la requête: $e',
       };
