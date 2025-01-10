@@ -34,6 +34,9 @@ try
     echo "Erreur : " . $e->getMessage();
 }
 
+/**
+ * Cette fonction permet de hacher les mots de passe, pour ne pas que ces derniers soient stockés en clair dans la base.
+ */
 function hashPassword(string $clearPassword): string
 {
 	$salt = "secretSalt"; // random_bytes(16);

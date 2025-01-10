@@ -120,19 +120,22 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = true;
       });
+
       String email = _emailController.text;
       String password = _passwordController.text;
+
       final user = await _authService.login(email, password);
+
       setState(() {
         _isLoading = false;
       });
+
       if (user != null) {
-// Connexion réussie avec informations supplémentaires
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ProfileScreen(
-              email: email,
+              email: user['email'],
               firstName: user['firstName'],
               lastName: user['lastName'],
               role: user['role'],
@@ -140,16 +143,15 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-// Connexion échouée
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Erreur'),
-            content: Text('Email ou mot de passe incorrect'),
+            title: const Text('Erreur'),
+            content: const Text('Email ou mot de passe incorrect'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           ),

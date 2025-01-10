@@ -1,41 +1,61 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService {
-  // Simuler un stockage local d'utilisateurs (peut être remplacé par une API)
-  final Map<String, Map<String, dynamic>> _users = {
-    'user@example.com': {
-      'password': hashPassword('userpass'),
-      'firstName': 'Jane',
-      'lastName': 'Doe',
-      'role': 'User',
-    },
-    'admin@example.com': {
-      'password': hashPassword('adminpass'),
-      'firstName': 'Admin',
-      'lastName': 'User',
-      'role': 'Admin',
-    },
-  };
+  final String apiUrl = 'http://localhost'; // Assurez-vous que c'est le bon port
 
   Future<Map<String, dynamic>?> login(String email, String password) async {
-
-    // Simuler un délai réseau
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    if(_users.containsKey(email)) {
+    try {
       String hashedPassword = hashPassword(password);
-      if(_users[email]!['password'] == hashedPassword) {
-        return _users[email];
-      }
-    }
 
-    return null;
+      final Map<String, String> body = {
+        'email': email,
+        'password': hashedPassword,
+      };
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (data['status'] == 200) {
+          return {
+            'firstName': data['firstName'],
+            'lastName': data['lastName'],
+            'role': data['role'],
+            'email': data['email'],
+          };
+        } else {
+          return {
+            'status': data['status'],
+            'message': data['message'],
+          };
+        }
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return {
+          'status': data['status'],
+          'message': data['message'],
+        };
+      }
+    } catch (e) {
+      // On tombe ici en cas de problème non-lié à l'API directement (comme un problème de connexion)
+      return {
+        'status': 0,
+        'message': 'Erreur lors de la requête: $e',
+      };
+    }
   }
 
   static String hashPassword(String password) {
-    final bytes = utf8.encode(password);
+    final saltedPassword = 'secretSalt${password}';
+    final bytes = utf8.encode(saltedPassword);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
