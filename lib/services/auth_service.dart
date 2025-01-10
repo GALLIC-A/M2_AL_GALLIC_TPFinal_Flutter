@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:login_app/config.dart';
 
 class AuthService {
-  final String apiUrl = 'http://localhost'; // Assurez-vous que c'est le bon port
+  final String apiUrl = LoginAppConfig().apiUrl; // Assurez-vous que c'est le bon port
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
