@@ -1,16 +1,9 @@
-# login_app
+identifiants :
+utilisateur = Jean, Dupont, jdupont@mail.com, supermotdepasse
+utilisateur2 = Denis, Jean, djean@mail.com, secret
+administrateur = Admin, User, adm@mail.com, admSecurePassword
 
-Implémentation d'un formulaire avec validation
+EXecution de l'API: 
+L'API minimaliste écrite en PHP (8.2) se situe dans le répertoire "auth_api", il suffit de lancer un serveur de développement PHP depuis ce répertoire (avec la commande `php -S localhost:3030`)
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Les mots de passe sont stockés hachés en base, ils doivent donc être hachés lorsqu'on les tape côté front pour ne pas qu'ils transitent en clair sur le réseau.
